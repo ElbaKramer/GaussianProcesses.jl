@@ -2,7 +2,7 @@ type MeanFunction
     fname::String
     f::Function
     pf::Function
-    hyp::Vector
+    hyp::Vector{Float64}
 end
 
 function meanvec(f::MeanFunction,
@@ -31,7 +31,7 @@ end
 import Base.show
 
 function show(io::IO, x::MeanFunction)
-    @printf io "%s(hyp=%s)" x.fname string(x.hyp)
+    print(io, x.fname, "(hyp=", string(x.hyp), ")")
 end
 
 export MeanFunction,

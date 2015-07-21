@@ -116,22 +116,12 @@ end
 import Base.show
 
 function show(io::IO, x::SimpleCovarianceFunction)
-    @printf io "%s(hyp=%s)" x.fname string(x.hyp)
+    print(io, x.fname, "(hyp=", string(x.hyp), ")")
 end
 
 function show(io::IO, x::CompositeCovarianceFunction)
-    @printf io "%s(hyp=%s" x.fname string(x.hyp)
-    @printf io ",fvec=["
-    comma = false
-    for f in x.fvec
-        if !comma
-            comma = true
-        else
-            @printf io ","
-        end
-        show(io, f)
-    end
-    @printf io "])"
+    print(io, x.fname, "(hyp=", string(x.hyp))
+    print(io, ",fvec=[", join([string(f) for f in x.fvec], ","), "])")
 end
 
 covdir = "cov"

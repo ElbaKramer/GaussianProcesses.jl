@@ -34,7 +34,9 @@ end
 import Optim.DifferentiableFunction
 import Optim.optimize
 
-function train(gp::GaussianProcess, x, y, iter=100, verbose=true)
+# original train function using juila's Optim package
+# but this didn't work well making errors, (no convergence)
+function train_notused(gp::GaussianProcess, x, y, iter=100, verbose=true)
     # objective function
     function f(hyp)
         n = size(x, 1)
@@ -86,7 +88,14 @@ function train(gp::GaussianProcess, x, y, iter=100, verbose=true)
     return opt
 end
 
-function train!(gp::GaussianProcess, x, y, iter=100, verbose=true)
+# this new train function uses gpml matlab codes with MATALB julia module
+include("gpml.jl")
+function train(gp::GaussianProcess, x, y, iter=1000, verbose=true)
+    hyp = minimize(gp, x, y, iter, verbose)
+    return hyp
+end
+
+function train!(gp::GaussianProcess, x, y, iter=1000, verbose=true)
     # just get optimum value calling train funciton
     hyp = train(gp, x, y, iter, verbose)
     # set the hyperparameters with the new one
@@ -100,6 +109,7 @@ function predict(gp::GaussianProcess, x, y, xs)
     # original covfunc and its noise free version
     covgiven = gp.covfunc
     covsignal = remove_noise(gp.covfunc)
+    println(covgiven)
 
     # mean vectors
     μs = meanvec(gp.meanfunc, xs)
@@ -107,12 +117,12 @@ function predict(gp::GaussianProcess, x, y, xs)
     # covariance matrices
     Kss = covmat(covsignal, xs, xs)
     Ksx = covmat(covsignal, xs, x)
-    Kxs = Ksx';
     Kxx = covmat(covgiven, x, x)
+    Lxx = chol(Kxx)
 
     # compute conditional
-    μ = μs + Ksx*solvechol(Kxx, y-μx)
-    Σ = Kss - Ksx*solvechol(Kxx, Kxs)
+    μ = μs + Ksx*solvechol(Lxx, y-μx)
+    Σ = Kss - Ksx*solvechol(Lxx, Ksx')
     σ²= diag(Σ)
 
     # return mean and variance with length of test input
