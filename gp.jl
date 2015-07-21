@@ -109,7 +109,6 @@ function predict(gp::GaussianProcess, x, y, xs)
     # original covfunc and its noise free version
     covgiven = gp.covfunc
     covsignal = remove_noise(gp.covfunc)
-    println(covgiven)
 
     # mean vectors
     μs = meanvec(gp.meanfunc, xs)
@@ -141,18 +140,19 @@ function test(gp::GaussianProcess, x, y, xs, ys)
 end
 
 function sample(gp::GaussianProcess, x)
-    y = zeros(size(x, 1))
+    n = size(x, 1)
+    y = zeros(n)
     idx = [];
-    for i in randperm(length(x))
+    for i in randperm(n)
         if isempty(idx)
-            idx = i;
-            m = meanvec(gp.meanfunc, x[i])
-            s2 = covmat(gp.covfunc, x[i], x[i])
+            idx = [i];
+            m = meanvec(gp.meanfunc, x[[i]])
+            s2 = covmat(gp.covfunc, x[[i]], x[[i]])
         else
-            m, s2 = predict(gp, x[idx], y[idx], x[i])
+            m, s2 = predict(gp, x[idx], y[idx], x[[i]])
             idx = vcat(idx, i)
         end
-        y[i] = m + sqrt(s2)*randn(1)
+        y[i] = m[1] + sqrt(s2[1])*randn()
     end
     return y
 end
