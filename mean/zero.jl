@@ -7,7 +7,7 @@ function partial_meanzero(x, hyp, i)
 end
 
 function meanZero(hyp=[])
-    return MeanFunction("meanZero",
+    return MeanFunction(:meanZero,
                         meanzero,
                         partial_meanzero,
                         hyp)

@@ -1,5 +1,5 @@
 type MeanFunction
-    fname::String
+    fname::Symbol
     f::Function
     pf::Function
     hyp::Vector{Float64}

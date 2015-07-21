@@ -140,5 +140,22 @@ function test(gp::GaussianProcess, x, y, xs, ys)
     return μ, σ², lp
 end
 
+function sample(gp::GaussianProcess, x)
+    y = zeros(size(x, 1))
+    idx = [];
+    for i in randperm(length(x))
+        if isempty(idx)
+            idx = i;
+            m = meanvec(gp.meanfunc, x[i])
+            s2 = covmat(gp.covfunc, x[i], x[i])
+        else
+            m, s2 = predict(gp, x[idx], y[idx], x[i])
+            idx = vcat(idx, i)
+        end
+        y[i] = m + sqrt(s2)*randn(1)
+    end
+    return y
+end
+
 export GaussianProcess,
-       lik, train, train!, predict, test
+       lik, train, train!, predict, test, sample

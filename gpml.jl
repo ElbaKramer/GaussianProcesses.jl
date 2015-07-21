@@ -1,13 +1,5 @@
 using MATLAB
 
-function mat(x::Array)
-    if ndims(x) == 2
-        return string(x)
-    elseif ndims(x) == 1
-        return string(x, "'")
-    end
-end
-
 function gpml(f::CovarianceFunction)
     if typeof(f) <: SimpleCovarianceFunction
         covfunc = string("{@", f.fname, "}")

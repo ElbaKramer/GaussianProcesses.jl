@@ -9,7 +9,6 @@ y = data[:,2]
 
 println("Generating gp object")
 meanfunc = meanZero()
-#covfunc = covSEiso([2.62, 5.68]) + covNoise([3.80])
 covfunc = covSEiso() + covNoise()
 gp = GaussianProcess(meanfunc, covfunc)
 println("gp = ", gp)
