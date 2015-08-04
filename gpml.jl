@@ -10,7 +10,7 @@ function gpml(f::CovarianceFunction)
     return covfunc
 end
 
-function minimize(gp::GaussianProcess, x, y, iter, verbose)
+function minimize_gpml(gp::GaussianProcess, x, y, iter, verbose)
     if verbose
         s = MSession()
     else
@@ -29,7 +29,7 @@ function minimize(gp::GaussianProcess, x, y, iter, verbose)
     put_variable(s, :x, mxarray(x))
     put_variable(s, :y, mxarray(y))
     put_variable(s, :iter, iter)
-    eval_string(s, "hyp = minimize(hyp, @gp, -iter, inference, meanfunc, covfunc, likfunc, x, y);")
+    eval_string(s, "hyp = minimize(hyp, @gp, iter, inference, meanfunc, covfunc, likfunc, x, y);")
     eval_string(s, "hypcov = hyp.cov;")
     hyp = jarray(get_mvariable(s, :hypcov))
     close(s)

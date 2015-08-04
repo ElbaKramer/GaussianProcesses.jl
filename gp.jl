@@ -31,67 +31,43 @@ function lik(gp::GaussianProcess, x, y)
     return nlml, dnlml
 end
 
-import Optim.DifferentiableFunction
-import Optim.optimize
+function lik(hyp, gp::GaussianProcess, x, y)
+    # size of data
+    n = size(x, 1)
+    # mean vector and covariance matrix
+    μ = meanvec(gp.meanfunc, x)
+    Σ = covmat(gp.covfunc, x, x, hyp)
 
-# original train function using juila's Optim package
-# but this didn't work well making errors, (no convergence)
-function train_notused(gp::GaussianProcess, x, y, iter=100, verbose=true)
-    # objective function
-    function f(hyp)
-        n = size(x, 1)
-        μ = meanvec(gp.meanfunc, x)
-        Σ = covmat(gp.covfunc, x, x, hyp)
-        L = chol(Σ)
-        α = solvechol(L, y-μ)
-        nlml = dot(y-μ, α/2) + sum(log(diag(L))) + n*log(2π)/2
-        return nlml
-    end
-    # first gradient function
-    function g!(hyp, dnlml)
-        n = size(x, 1)
-        μ = meanvec(gp.meanfunc, x)
-        Σ = covmat(gp.covfunc, x, x, hyp)
-        L = chol(Σ)
-        α = solvechol(L, y-μ)
-        Q = solvechol(L, eye(n)) - α*α'
-        for i in 1:length(dnlml)
-            dnlml[i] = sum(sum(Q.*partial_covmat(gp.covfunc, x, x, i, hyp)))/2
-        end
-        dnlml = dnlml/norm(dnlml)
-    end
-    # evaluate both logliklihood and gradient
-    function fg!(hyp, dnlml)
-        n = size(x, 1)
-        μ = meanvec(gp.meanfunc, x)
-        Σ = covmat(gp.covfunc, x, x, hyp)
-        L = chol(Σ)
-        α = solvechol(L, y-μ)
-        nlml = dot(y-μ, α/2) + sum(log(diag(L))) + n*log(2π)/2
-        Q = solvechol(L, eye(n)) - α*α'
-        for i in 1:length(dnlml)
-            dnlml[i] = sum(Q.*partial_covmat(gp.covfunc, x, x, i, hyp))/2
-        end
-        dnlml = dnlml/norm(dnlml)
-        return nlml
+    # calculate inverse of Σ using cholesky factorization
+    # here, α = Σ⁻¹(y-μ)
+    L = chol(Σ)
+    α = solvechol(L, y-μ)
+    # calculate negative log marginal likelihood
+    # here, nlml = 1/2*(y-μ)ᵀΣ⁻¹(y-μ) + 1/2*log(|Σ|) + k/2*log(2π)
+    nlml = dot(y-μ, α/2) + sum(log(diag(L))) + n*log(2π)/2
+
+    # precompute Q
+    Q = solvechol(L, eye(n)) - α*α'
+    # preallocate memory
+    dnlml = zeros(numhyp(gp.covfunc))
+    # calculate partial derivatives
+    for i in 1:length(dnlml)
+        dnlml[i] = sum(sum(Q.*partial_covmat(gp.covfunc, x, x, i, hyp)))/2
     end
 
-    # define defferentiable function for optim package
-    d4 = DifferentiableFunction(f, g!, fg!)
-    # optimize hyperparameters
-    hyp = gethyp(gp.covfunc)
-    opt = optimize(d4, hyp,
-                   method = :l_bfgs,
-                   show_trace = verbose)
-
-    # return the result of optimize
-    return opt
+    # return negative log marginal likelihood and its gradient
+    return nlml, dnlml
 end
 
 # this new train function uses gpml matlab codes with MATALB julia module
 include("gpml.jl")
 function train(gp::GaussianProcess, x, y, iter=1000, verbose=true)
-    hyp = minimize(gp, x, y, iter, verbose)
+    hyp = minimize_gpml(gp, x, y, -iter, verbose)
+    return hyp
+end
+
+function train2(gp::GaussianProcess, x, y, iter=1000, verbose=true)
+    hyp, evals, iters = minimize(gethyp(gp.covfunc), lik, -iter, gp, x, y)
     return hyp
 end
 
