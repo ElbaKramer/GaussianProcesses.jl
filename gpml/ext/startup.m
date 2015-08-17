@@ -2,7 +2,7 @@
 %
 % Copyright (c) by Carl Edward Rasmussen and Hannes Nickisch 2014-11-30.
 
-% disp(['executing gpml startup script...']);
+% disp(['executing gpml_ext startup script...']);
 
 OCT = exist('OCTAVE_VERSION') ~= 0;           % check if we run Matlab or Octave
 
@@ -14,13 +14,13 @@ end                 % OCTAVE 3.0.x relative, MATLAB and newer have absolute path
 
 addpath(mydir(1:end-1))
 addpath([mydir,'cov'])
-addpath([mydir,'doc'])
+%addpath([mydir,'doc'])
 addpath([mydir,'inf'])
 addpath([mydir,'lik'])
-addpath([mydir,'mean'])
-addpath([mydir,'prior'])
-addpath([mydir,'util'])
-
-run('ext/startup')
+%addpath([mydir,'mean'])
+%addpath([mydir,'prior'])
+%addpath([mydir,'util'])
+addpath([mydir,'data'])
+addpath([mydir,'script'])
 
 clear me mydir

@@ -1,4 +1,4 @@
-function [varargout] = likDelta(hyp, y, mu, s2, inf, i)
+function [varargout] = likDelta(hyp, y, mu, s2, inf)
 
 % likGauss - Gaussian likelihood function for regression. The expression for the 
 % likelihood is 
@@ -13,22 +13,21 @@ function [varargout] = likDelta(hyp, y, mu, s2, inf, i)
 % respectively, see likFunctions.m for the details. In general, care is taken
 % to avoid numerical issues when the arguments are extreme.
 %
-% Copyright (c) by Carl Edward Rasmussen and Hannes Nickisch, 2014-12-08.
+% Copyright (c) by Carl Edward Rasmussen and Hannes Nickisch, 2015-07-13.
 %                                      File automatically generated using noweb.
 %
 % See also LIKFUNCTIONS.M.
 
-if nargin<3, varargout = {'0'}; return; end   % report number of hyperparameters
+if nargin<2, varargout = {'0'}; return; end   % report number of hyperparameters
 
-%sn2 = exp(2*hyp);
 sn2 = 0;
 
 if nargin<5                              % prediction mode if inf is not present
   if isempty(y),  y = zeros(size(mu)); end
-  s2zero = 1; if nargin>3, if norm(s2)>0, s2zero = 0; end, end         % s2==0 ?
+  s2zero = 1; if nargin>3&&numel(s2)>0&&norm(s2)>eps, s2zero = 0; end  % s2==0 ?
   if s2zero                                                    % log probability
-    %lp = -(y-mu).^2./sn2/2-log(2*pi*sn2)/2; s2 = 0;
     error('Delta likelihood needs non-zero noise upstream')
+    lp = -(y-mu).^2./sn2/2-log(2*pi*sn2)/2; s2 = 0;
   else
     lp = likDelta(hyp, y, mu, s2, 'infEP');                         % prediction
   end
@@ -58,11 +57,10 @@ else
       end
       varargout = {lp,dlp,d2lp,d3lp};
     else                                                       % derivative mode
-      %lp_dhyp = (y-mu).^2/sn2 - 1;  % derivative of log likelihood w.r.t. hypers
-      %dlp_dhyp = 2*(mu-y)/sn2;                               % first derivative,
-      %d2lp_dhyp = 2*ones(size(mu))/sn2;   % and also of the second mu derivative
-      %varargout = {lp_dhyp,dlp_dhyp,d2lp_dhyp};
-      varargout = {0, 0, 0};
+      lp_dhyp = (y-mu).^2/sn2 - 1;  % derivative of log likelihood w.r.t. hypers
+      dlp_dhyp = 2*(mu-y)/sn2;                               % first derivative,
+      d2lp_dhyp = 2*ones(size(mu))/sn2;   % and also of the second mu derivative
+      varargout = {lp_dhyp,dlp_dhyp,d2lp_dhyp};
     end
 
   case 'infEP'
@@ -77,9 +75,7 @@ else
       end
       varargout = {lZ,dlZ,d2lZ};
     else                                                       % derivative mode
-      %dlZhyp = ((y-mu).^2./(sn2+s2)-1) ./ (1+s2./sn2);   % deriv. w.r.t. hyp.lik
-      %varargout = {dlZhyp};
-      dlZhyp = 0;
+      dlZhyp = [];
       varargout = {dlZhyp};
     end
 
