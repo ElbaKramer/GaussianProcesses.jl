@@ -16,6 +16,7 @@ function solvechol(L, B)
 end
 
 function minimize(X, f, iter, varargin...)
+    verbose = true
 
     INT = 0.1
     EXT = 3.0
@@ -41,7 +42,9 @@ function minimize(X, f, iter, varargin...)
     ls_failed = false
     f0, df0 = f(X, varargin...)
 
-    println(S, " ", i, ";  Value ", f0)
+    if verbose
+        println(S, " ", i, ";  Value ", f0)
+    end
 
     fX = f0
     i = i + (len < 0)
@@ -67,6 +70,7 @@ function minimize(X, f, iter, varargin...)
             M = min(MAX, -len-i)
         end
 
+        # extrapolation
         while true
             x2 = 0
             f2 = f0
@@ -114,6 +118,7 @@ function minimize(X, f, iter, varargin...)
             end
         end
 
+        # interpolation
         while (abs(d3) > -SIG*d0 || f3 > f0+x3*RHO*d0) && M > 0
             if d3 > 0 || f3 > f0+x3*RHO*d0
                 x4 = x3
@@ -146,11 +151,14 @@ function minimize(X, f, iter, varargin...)
             d3 = dot(df3, s)
         end
 
+        # check whether line search succeeded
         if abs(d3) < -SIG*d0 && f3 < f0+x3*RHO*d0
             X = X+x3*s
             f0 = f3
             fX = [fX, f0]
-            println(S, " ", i, ";  Value ", f0)
+            if verbose
+                println(S, " ", i, ";  Value ", f0)
+            end
             s = (dot(df3, df3)-dot(df0, df3))/dot(df0, df0)*s - df3
             df0 = df3
             d3 = d0
@@ -175,14 +183,8 @@ function minimize(X, f, iter, varargin...)
         end
     end
 
-    if ls_failed
-        println("Linesearch failed")
-    end
-
     # return value, evals, iterations
     return X, fX, i
 end
 
-function myfunc(x)
-    return x^2, 2x
-end
+export minimize

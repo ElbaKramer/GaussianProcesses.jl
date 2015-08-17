@@ -17,14 +17,14 @@ end
 
 function covmat(f::SimpleCovarianceFunction,
                 x::Array, z::Array,
-                hyp::Vector=f.hyp)
+                hyp::Vector=gethyp(f))
     K = f.f(x, z, hyp)
     return K
 end
 
 function covmat(f::CompositeCovarianceFunction,
                 x::Array, z::Array,
-                hyp::Vector=f.hyp)
+                hyp::Vector=gethyp(f))
     if isempty(f.fvec)
         error("We require at least one element")
     else
@@ -35,14 +35,14 @@ end
 
 function partial_covmat(f::SimpleCovarianceFunction,
                         x::Array, z::Array, i::Integer,
-                        hyp::Vector=f.hyp)
+                        hyp::Vector=gethyp(f))
     pK = f.pf(x, z, hyp, i)
     return pK
 end
 
 function partial_covmat(f::CompositeCovarianceFunction,
                         x::Array, z::Array, i::Integer,
-                        hyp::Vector=f.hyp)
+                        hyp::Vector=gethyp(f))
     if isempty(f.fvec)
         error("We require at least one element")
     else
@@ -108,7 +108,7 @@ function sethyp!(f::CompositeCovarianceFunction, hyp::Vector)
         end
         v = apply(vcat, v)
         for i=1:n
-            sethyp!(f.fvec[i], hyp[i.==v])
+            sethyp!(f.fvec[i], hyp[v.==i])
         end
     end
 end

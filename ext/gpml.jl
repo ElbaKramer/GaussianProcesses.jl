@@ -10,12 +10,8 @@ function gpml(f::CovarianceFunction)
     return covfunc
 end
 
-function minimize_gpml(gp::GaussianProcess, x, y, iter, verbose)
-    if verbose
-        s = MSession()
-    else
-        s = MSession(0)
-    end
+function minimize_gpml(gp::GaussianProcess, x, y, iter)
+    s = MSession()
     eval_string(s, "
     run('gpml/startup');
     inference = @infDelta;
@@ -35,3 +31,11 @@ function minimize_gpml(gp::GaussianProcess, x, y, iter, verbose)
     close(s)
     return vec(hyp)
 end
+
+# this new train function uses gpml matlab codes with MATALB julia module
+function train_gpml(gp::GaussianProcess, x, y, iter)
+    hyp = minimize_gpml(gp, x, y, -iter)
+    return hyp
+end
+
+export train_gpml

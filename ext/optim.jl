@@ -1,17 +1,19 @@
 import Optim.DifferentiableFunction
 import Optim.optimize
 
-# original train function using juila's Optim package
-# but this didn't work well making errors, (no convergence)
-function train_notused(gp::GaussianProcess, x, y, iter=100, verbose=true)
+function train_optim(gp::GaussianProcess, x, y, iter)
+    verbose = true
     # objective function
     function f(hyp)
         n = size(x, 1)
         μ = meanvec(gp.meanfunc, x)
         Σ = covmat(gp.covfunc, x, x, hyp)
+        if !isposdef(Σ)
+            return NaN
+        end
         L = chol(Σ)
         α = solvechol(L, y-μ)
-        nlml = dot(y-μ, α/2) + sum(log(diag(L))) + n*log(2π)/2
+        nlml = dot(y-μ, α)/2 + sum(log(diag(L))) + n*log(2π)/2
         return nlml
     end
     # first gradient function
@@ -19,27 +21,34 @@ function train_notused(gp::GaussianProcess, x, y, iter=100, verbose=true)
         n = size(x, 1)
         μ = meanvec(gp.meanfunc, x)
         Σ = covmat(gp.covfunc, x, x, hyp)
+        if !isposdef(Σ)
+            dnlml = fill(NaN, size(dnlml))
+            return dnlml
+        end
         L = chol(Σ)
         α = solvechol(L, y-μ)
         Q = solvechol(L, eye(n)) - α*α'
         for i in 1:length(dnlml)
             dnlml[i] = sum(sum(Q.*partial_covmat(gp.covfunc, x, x, i, hyp)))/2
         end
-        dnlml = dnlml/norm(dnlml)
+        return dnlml
     end
     # evaluate both logliklihood and gradient
     function fg!(hyp, dnlml)
         n = size(x, 1)
         μ = meanvec(gp.meanfunc, x)
         Σ = covmat(gp.covfunc, x, x, hyp)
+        if !isposdef(Σ)
+            dnlml = fill(NaN, size(dnlml))
+            return NaN
+        end
         L = chol(Σ)
         α = solvechol(L, y-μ)
-        nlml = dot(y-μ, α/2) + sum(log(diag(L))) + n*log(2π)/2
         Q = solvechol(L, eye(n)) - α*α'
+        nlml = dot(y-μ, α)/2 + sum(log(diag(L))) + n*log(2π)/2        
         for i in 1:length(dnlml)
-            dnlml[i] = sum(Q.*partial_covmat(gp.covfunc, x, x, i, hyp))/2
+            dnlml[i] = sum(sum(Q.*partial_covmat(gp.covfunc, x, x, i, hyp)))/2
         end
-        dnlml = dnlml/norm(dnlml)
         return nlml
     end
 
@@ -52,5 +61,7 @@ function train_notused(gp::GaussianProcess, x, y, iter=100, verbose=true)
                    show_trace = verbose)
 
     # return the result of optimize
-    return opt
+    return opt.minimum
 end
+
+export train_optim

@@ -3,34 +3,6 @@ type GaussianProcess
     covfunc::CovarianceFunction
 end
 
-function lik(gp::GaussianProcess, x, y)
-    # size of data
-    n = size(x, 1)
-    # mean vector and covariance matrix
-    μ = meanvec(gp.meanfunc, x)
-    Σ = covmat(gp.covfunc, x, x)
-
-    # calculate inverse of Σ using cholesky factorization
-    # here, α = Σ⁻¹(y-μ)
-    L = chol(Σ)
-    α = solvechol(L, y-μ)
-    # calculate negative log marginal likelihood
-    # here, nlml = 1/2*(y-μ)ᵀΣ⁻¹(y-μ) + 1/2*log(|Σ|) + k/2*log(2π)
-    nlml = dot(y-μ, α/2) + sum(log(diag(L))) + n*log(2π)/2
-
-    # precompute Q
-    Q = solvechol(L, eye(n)) - α*α'
-    # preallocate memory
-    dnlml = zeros(numhyp(gp.covfunc))
-    # calculate partial derivatives
-    for i in 1:length(dnlml)
-        dnlml[i] = sum(sum(Q.*partial_covmat(gp.covfunc, x, x, i)))/2
-    end
-
-    # return negative log marginal likelihodd and its gradient
-    return nlml, dnlml
-end
-
 function lik(hyp, gp::GaussianProcess, x, y)
     # size of data
     n = size(x, 1)
@@ -44,7 +16,7 @@ function lik(hyp, gp::GaussianProcess, x, y)
     α = solvechol(L, y-μ)
     # calculate negative log marginal likelihood
     # here, nlml = 1/2*(y-μ)ᵀΣ⁻¹(y-μ) + 1/2*log(|Σ|) + k/2*log(2π)
-    nlml = dot(y-μ, α/2) + sum(log(diag(L))) + n*log(2π)/2
+    nlml = dot(y-μ, α)/2 + sum(log(diag(L))) + n*log(2π)/2
 
     # precompute Q
     Q = solvechol(L, eye(n)) - α*α'
@@ -59,21 +31,22 @@ function lik(hyp, gp::GaussianProcess, x, y)
     return nlml, dnlml
 end
 
-# this new train function uses gpml matlab codes with MATALB julia module
-include("gpml.jl")
-function train(gp::GaussianProcess, x, y, iter=1000, verbose=true)
-    hyp = minimize_gpml(gp, x, y, -iter, verbose)
-    return hyp
+function lik(gp::GaussianProcess, x, y)
+    return lik(gethyp(gp.covfunc), gp, x, y)
 end
 
-function train2(gp::GaussianProcess, x, y, iter=1000, verbose=true)
+function train_util(gp::GaussianProcess, x, y, iter)
     hyp, evals, iters = minimize(gethyp(gp.covfunc), lik, -iter, gp, x, y)
     return hyp
 end
 
-function train!(gp::GaussianProcess, x, y, iter=1000, verbose=true)
+function train(gp::GaussianProcess, x, y, iter=1000)
+    return train_util(gp, x, y, iter)
+end
+
+function train!(gp::GaussianProcess, x, y, iter=1000)
     # just get optimum value calling train funciton
-    hyp = train(gp, x, y, iter, verbose)
+    hyp = train(gp, x, y, iter)
     # set the hyperparameters with the new one
     sethyp!(gp.covfunc, hyp)
 
@@ -98,7 +71,7 @@ function predict(gp::GaussianProcess, x, y, xs)
     # compute conditional
     μ = μs + Ksx*solvechol(Lxx, y-μx)
     Σ = Kss - Ksx*solvechol(Lxx, Ksx')
-    σ²= diag(Σ)
+    σ²= diag(Σ) # needs improvement in terms of computational efficiency
 
     # return mean and variance with length of test input
     return μ, σ²

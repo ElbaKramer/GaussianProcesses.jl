@@ -1,7 +1,13 @@
 function covsum(x, z, hyp, fvec)
+    n = length(fvec)
+    v = cell(n)
+    for i=1:n
+        v[i] = fill(i, numhyp(fvec[i]))
+    end
+    v = apply(vcat, v)
     K = 0
-    for i=1:length(fvec)
-        K = K + covmat(fvec[i], x, z)
+    for i=1:n
+        K = K + covmat(fvec[i], x, z, hyp[v.==i])
     end
     return K
 end
@@ -9,8 +15,8 @@ end
 function partial_covsum(x, z, hyp, fvec, i)
     n = length(fvec)
     v = cell(n)
-    for k=1:n
-        v[k] = fill(k, numhyp(fvec[k]))
+    for j=1:n
+        v[j] = fill(j, numhyp(fvec[j]))
     end
     v = apply(vcat, v)
     if i<=length(v)
