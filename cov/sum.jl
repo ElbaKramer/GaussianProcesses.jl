@@ -1,12 +1,8 @@
 function covsum(x, z, hyp, fvec)
     n = length(fvec)
-    v = cell(n)
-    for i=1:n
-        v[i] = fill(i, numhyp(fvec[i]))
-    end
-    v = apply(vcat, v)
+    v = apply(vcat, [fill(i, numhyp(fvec[i])) for i in 1:n])
     K = 0
-    for i=1:n
+    for i in 1:n
         K = K + covmat(fvec[i], x, z, hyp[v.==i])
     end
     return K
@@ -14,15 +10,11 @@ end
 
 function partial_covsum(x, z, hyp, fvec, i)
     n = length(fvec)
-    v = cell(n)
-    for j=1:n
-        v[j] = fill(j, numhyp(fvec[j]))
-    end
-    v = apply(vcat, v)
-    if i<=length(v)
+    v = apply(vcat, [fill(j, numhyp(fvec[j])) for j in 1:n])
+    if i <= length(v)
         vi = v[i]
         j = sum(v[1:i].==vi)
-        K = partial_covmat(fvec[vi], x, z, j)
+        K = partial_covmat(fvec[vi], x, z, j, hyp[v.==vi])
         return K
     else
         error("Unknown hyperparameter")
@@ -46,11 +38,11 @@ function +(f1::CovarianceFunction, f2::CovarianceFunction)
         return f
     elseif fn1 && !fn2
         f = deepcopy(f1)
-        append!(f.fvec, deepcopy(f2))
+        append!(f.fvec, [deepcopy(f2)])
         return f
     elseif !fn1 && fn2
         f = deepcopy(f2)
-        prepend!(f.fvec, deepcopy(f1))
+        prepend!(f.fvec, [deepcopy(f1)])
         return f
     else
         f = deepcopy(f1)

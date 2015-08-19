@@ -108,7 +108,10 @@ function minimize(X, f, iter, varargin...)
             d2 = d3
             A = 6*(f1-f2)+3*(d2+d1)*(x2-x1)
             B = 3*(f2-f1)-(2*d1+d2)*(x2-x1)
-            x3 = x1-d1*(x2-x1)^2/(B+sqrt(B*B-A*d1*(x2-x1)))
+            x3 = x1-d1*(x2-x1)^2/(B+sqrt(complex(B*B-A*d1*(x2-x1))))
+            if isreal(x3)
+                x3 = real(x3)
+            end
             if !isreal(x3) || isnan(x3) || isinf(x3) || x3 < 0
                 x3 = x2*EXT
             elseif x3 > x2*EXT
@@ -134,7 +137,10 @@ function minimize(X, f, iter, varargin...)
             else
                 A = 6*(f2-f4)/(x4-x2)+3*(d4+d2)
                 B = 3*(f4-f2)-(2*d2+d4)*(x4-x2)
-                x3 = x2+(sqrt(B*B-A*d2*(x4-x2)^2)-B)/A
+                x3 = x2+(sqrt(complex(B*B-A*d2*(x4-x2)^2))-B)/A
+                if isreal(x3)
+                    x3 = real(x3)
+                end
             end
             if isnan(x3) || isinf(x3)
                 x3 = (x2+x4)/2

@@ -1,19 +1,23 @@
 function noise(x, z, hyp)
+    n = size(x, 1)
+    m = size(z, 1)
     σ² = exp(2*hyp[1])
     tol = eps()
-    K = sqdist(x', z').<tol*tol
-    K = convert(Array{Float64,2}, K)
-    K = σ²*K
+    T = sqdist(x', z').<tol*tol
+    K = zeros(n, m)
+    K[find(T)] = σ²
     return K
 end
 
 function partial_noise(x, z, hyp, i)
+    n = size(x, 1)
+    m = size(z, 1)
     σ² = exp(2*hyp[1])
     tol = eps()
-    K = sqdist(x', z').<tol*tol
-    K = convert(Array{Float64,2}, K)
+    T = sqdist(x', z').<tol*tol
+    K = zeros(n, m)
     if i==1
-        K = 2*σ²*K
+        K[find(T)] = 2*σ²
     else
         error("Unknown hyperparamter")
     end

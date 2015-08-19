@@ -40,11 +40,8 @@ function train_util(gp::GaussianProcess, x, y, iter)
     return hyp
 end
 
-include("ext/optim.jl")
-include("ext/gpml.jl")
-
 function train(gp::GaussianProcess, x, y, iter=1000)
-    return train_gpml(gp, x, y, iter)
+    return train_util(gp, x, y, iter)
 end
 
 function train!(gp::GaussianProcess, x, y, iter=1000)

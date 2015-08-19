@@ -52,11 +52,11 @@ function partial_covmat(f::CompositeCovarianceFunction,
 end
 
 function numhyp(f::SimpleCovarianceFunction)
-    return length(f.hyp)
+    return length(gethyp(f))
 end
 
 function numhyp(f::CompositeCovarianceFunction, self::Bool=false)
-    n = length(f.hyp)
+    n = length(gethyp(f, true))
     if !self
         for i=1:length(f.fvec)
             n = n + numhyp(f.fvec[i])
@@ -74,10 +74,7 @@ function gethyp(f::CompositeCovarianceFunction, self::Bool=false)
         return f.hyp
     else
         n = length(f.fvec)
-        hyps = cell(n)
-        for i=1:n
-            hyps[i] = gethyp(f.fvec[i])
-        end
+        hyps = [gethyp(f.fvec[i]) for i in 1:n]
         hyp = apply(vcat, f.hyp, hyps)
         return hyp
     end
@@ -95,18 +92,14 @@ function sethyp!(f::CompositeCovarianceFunction, hyp::Vector)
     if length(hyp) != numhyp(f)
         error("Length does not match")
     else
-        if(!isempty(f.hyp))
+        if !isempty(f.hyp)
             sn = length(f.hyp)
             shyp = hyp[1:sn]
             hyp = hyp[(sn+1):end]
             f.hyp = shyp
         end
         n = length(f.fvec)
-        v = cell(n)
-        for i=1:n
-            v[i] = fill(i, numhyp(f.fvec[i]))
-        end
-        v = apply(vcat, v)
+        v = apply(vcat, [fill(i, numhyp(f.fvec[i])) for i in 1:n])
         for i=1:n
             sethyp!(f.fvec[i], hyp[v.==i])
         end

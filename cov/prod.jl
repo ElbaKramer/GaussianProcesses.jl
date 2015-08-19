@@ -1,22 +1,27 @@
 function covprod(x, z, hyp, fvec)
-    K = 0
-    for i=1:length(fvec)
-        K = K + covmat(fvec[i], x, z)
+    n = length(fvec)
+    v = apply(vcat, [fill(i, numhyp(fvec[i])) for i in 1:n])
+    K = 1
+    for i=1:n
+        K = K .* covmat(fvec[i], x, z, hyp[v.==i])
     end
     return K
 end
 
 function partial_covprod(x, z, hyp, fvec, i)
     n = length(fvec)
-    v = cell(n)
-    for k=1:n
-        v[k] = fill(k, numhyp(fvec[k]))
-    end
-    v = apply(vcat, v)
-    if i<=length(v)
+    v = apply(vcat, [fill(j, numhyp(fvec[j])) for j in 1:n])
+    if i <= length(v)
+        K = 1
         vi = v[i]
         j = sum(v[1:i].==vi)
-        K = partial_covmat(fvec[vi], x, z, j)
+        for ii in 1:n
+            if ii == vi
+                K = K .* partial_covmat(fvec[ii], x, z, j, hyp[v.==ii])
+            else
+                K = K .* covmat(fvec[ii], x, z, hyp[v.==ii])
+            end
+        end
         return K
     else
         error("Unknown hyperparameter")
@@ -40,11 +45,11 @@ function *(f1::CovarianceFunction, f2::CovarianceFunction)
         return f
     elseif fn1 && !fn2
         f = deepcopy(f1)
-        append!(f.fvec, deepcopy(f2))
+        append!(f.fvec, [deepcopy(f2)])
         return f
     elseif !fn1 && fn2
         f = deepcopy(f2)
-        prepend!(f.fvec, deepcopy(f1))
+        prepend!(f.fvec, [deepcopy(f1)])
         return f
     else
         f = deepcopy(f1)
