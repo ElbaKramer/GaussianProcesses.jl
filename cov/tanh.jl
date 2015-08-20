@@ -1,6 +1,4 @@
 function covtanh(x, z, hyp, fvec)
-    n = length(fvec)
-    assert(n==1)
     covfunc = fvec[1]
     K = covmat(covfunc, x, z, hyp)
     K = tanh(K)
@@ -8,20 +6,22 @@ function covtanh(x, z, hyp, fvec)
 end
 
 function partial_covtanh(x, z, hyp, fvec, i)
-    n = length(fvec)
-    assert(n==1)
     covfunc = fvec[1]
     K = covmat(covfunc, x, z, hyp)
-    K = (1 - tan(K).^2) * partial_covmat(covfunc, x, z, i, hyp)
+    if i <= length(hyp)
+        K = (1 - tan(K).^2) * partial_covmat(covfunc, x, z, i, hyp)
+    else
+        error("Unknown hyperparameter")
+    end
     return K
 end
 
-function covTanh(hyp=[], fvec=[])
+function covTanh(covfunc)
     return CompositeCovarianceFunction(:covTanh, 
                                        covtanh, 
                                        partial_covtanh, 
-                                       hyp,
-                                       fvec)
+                                       [],
+                                       [covfunc])
 end
 
 export covTanh

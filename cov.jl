@@ -12,7 +12,7 @@ type CompositeCovarianceFunction <: CovarianceFunction
     f::Function
     pf::Function
     hyp::Vector{Float64}
-    fvec::Vector{CovarianceFunction}
+    fvec::Vector{Any}
 end
 
 function covmat(f::SimpleCovarianceFunction,

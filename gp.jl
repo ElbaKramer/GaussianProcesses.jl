@@ -35,6 +35,21 @@ function lik(gp::GaussianProcess, x, y)
     return lik(gethyp(gp.covfunc), gp, x, y)
 end
 
+function bic(nlml, k, n)
+    return 2*nlml + k*log(n)
+end
+
+function bic(hyp, gp::GaussianProcess, x, y)
+    nlml, dnlml = lik(hyp, gp, x, y)
+    k = numhyp(gp.covfunc)
+    n = size(x, 1)
+    return bic(nlml, k, n)
+end
+
+function bic(gp::GaussianProcess, x, y)
+    return bic(gethyp(gp.covfunc), gp, x, y)
+end
+
 function train_util(gp::GaussianProcess, x, y, iter)
     hyp, evals, iters = minimize(gethyp(gp.covfunc), lik, -iter, gp, x, y)
     return hyp
@@ -71,7 +86,7 @@ function predict(gp::GaussianProcess, x, y, xs)
     # compute conditional
     μ = μs + Ksx*solvechol(Lxx, y-μx)
     Σ = Kss - Ksx*solvechol(Lxx, Ksx')
-    σ²= diag(Σ) # needs improvement in terms of computational efficiency
+    σ²= diag(Σ) # needs improvement in terms of computational efficiency #TODO
 
     # return mean and variance with length of test input
     return μ, σ²
@@ -82,7 +97,7 @@ function test(gp::GaussianProcess, x, y, xs, ys)
     μ, σ² = predict(gp, x, y, xs)
 
     # pointwise log probabilities
-    lp = -(y-μ).^2./σ²/2-log(2π*n2)/2
+    lp = -(ys-μ).^2./σ²/2-log(2π*σ²)/2
 
     # return mean, variance and log probability with length of test input
     return μ, σ², lp

@@ -6,11 +6,11 @@ function partial_meanzero(x, hyp, i)
     return 0.0
 end
 
-function meanZero(hyp=[])
+function meanZero()
     return MeanFunction(:meanZero,
                         meanzero,
                         partial_meanzero,
-                        hyp)
+                        [])
 end
 
 export meanZero

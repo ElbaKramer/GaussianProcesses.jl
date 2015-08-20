@@ -28,11 +28,11 @@ function partial_covprod(x, z, hyp, fvec, i)
     end
 end
 
-function covProd(hyp=[], fvec=[])
+function covProd(fvec=[])
     return CompositeCovarianceFunction(:covProd, 
                                        covprod, 
                                        partial_covprod, 
-                                       hyp,
+                                       [],
                                        fvec)
 end
 

@@ -9,11 +9,11 @@ function partial_covzero(x, z, hyp, i)
     error("Unknown hyperparamter")
 end
 
-function covZero(hyp=[])
+function covZero()
     return SimpleCovarianceFunction(:covZero, 
                                     covzero, 
                                     partial_covzero, 
-                                    hyp)
+                                    [])
 end
 
 covNone = covZero()

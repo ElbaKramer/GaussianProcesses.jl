@@ -21,11 +21,11 @@ function partial_covsum(x, z, hyp, fvec, i)
     end
 end
 
-function covSum(hyp=[], fvec=[])
+function covSum(fvec=[])
     return CompositeCovarianceFunction(:covSum, 
                                        covsum, 
                                        partial_covsum, 
-                                       hyp,
+                                       [],
                                        fvec)
 end
 

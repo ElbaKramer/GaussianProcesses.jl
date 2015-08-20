@@ -7,16 +7,20 @@ end
 
 function meanvec(f::MeanFunction,
                  x::Array,
-                 hyp::Vector=f.hyp)
+                 hyp::Vector=gethyp(f))
     μ = f.f(x, hyp)
     return μ
 end
 
 function partial_meanvec(f::MeanFunction,
                          x::Array,
-                         hyp::Vector=f.hyp)
+                         hyp::Vector=gethyp(f))
     pμ = f.pf(x, hyp, i)
     return pμ
+end
+
+function gethyp(f::MeanFunction)
+    return f.hyp
 end
 
 meandir = "mean"

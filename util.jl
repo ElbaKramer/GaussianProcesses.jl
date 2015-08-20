@@ -15,6 +15,13 @@ function solvechol(L, B)
     return L\(L'\B)
 end
 
+function sortrowsperm(A::AbstractMatrix; kws...)
+    c = 1:size(A,2)
+    rows = [ sub(A,i,c) for i=1:size(A,1) ]
+    p = sortperm(rows; kws..., order=Lexicographic)
+    return p
+end
+
 function minimize(X, f, iter, varargin...)
     verbose = true
 
