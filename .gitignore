@@ -1,4 +1,1 @@
 *.swp
-rgp.jl
-cov/changewindow.jl
-cov/key.jl

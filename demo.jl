@@ -25,7 +25,6 @@ println("optimized params = ", gethyp(gp.covfunc))
 nlml, dnlml = lik(gp, x, y)
 println("optimized nlml = ", nlml)
 m, s2, lp = test(gp, x, y, x, y)
-println(-sum(lp))
 
 println("Plotting data and result")
 figure()
