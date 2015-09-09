@@ -1,19 +1,23 @@
-function covzero(x, z, hyp)
+function covzero(x, z, hyp, fvec, spec)
     n = size(x, 1)
     m = size(m, 1)
     K = zeros(n, m)
     return K
 end
 
-function partial_covzero(x, z, hyp, i)
+function partial_covzero(x, z, hyp, i, fvec, spec)
     error("Unknown hyperparamter")
 end
 
+tags_zero = ["const"]
+
 function covZero()
-    return SimpleCovarianceFunction(:covZero, 
-                                    covzero, 
-                                    partial_covzero, 
-                                    [])
+    obj = CovarianceFunction(:covZero, 
+                             covzero, 
+                             partial_covzero, 
+                             [])
+    obj.spec["tag"] = tags_zero
+    return obj
 end
 
 covNone = covZero()

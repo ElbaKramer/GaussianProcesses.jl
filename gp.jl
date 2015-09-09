@@ -51,7 +51,7 @@ function bic(gp::GaussianProcess, x, y)
 end
 
 function train_util(gp::GaussianProcess, x, y, iter)
-    hyp, evals, iters = minimize(gethyp(gp.covfunc), lik, -iter, gp, x, y)
+    hyp, evals, iters = minimize(gethyp(gp.covfunc), lik, iter, gp, x, y)
     return hyp
 end
 

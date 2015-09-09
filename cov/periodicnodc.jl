@@ -31,7 +31,7 @@ function covD(D, ell)
     return K
 end
 
-function periodicnodc(x, z, hyp)
+function periodicnodc(x, z, hyp, fvec, spec)
     ℓ = exp(hyp[1])
     p = exp(hyp[2])
     σ² = exp(2*hyp[3])
@@ -41,7 +41,7 @@ function periodicnodc(x, z, hyp)
     return K
 end
 
-function partial_periodicnodc(x, z, hyp, i)
+function partial_periodicnodc(x, z, hyp, i, fvec, spec)
     ell = exp(hyp[1])
     p = exp(hyp[2])
     sf2 = exp(2*hyp[3])
@@ -85,10 +85,11 @@ function partial_periodicnodc(x, z, hyp, i)
 end
 
 function covPeriodicNoDC(hyp=[0.0,0.0,0.0])
-    return SimpleCovarianceFunction(:covPeriodicNoDC,
-                                    periodicnodc, 
-                                    partial_periodicnodc, 
-                                    hyp)
+    obj = CovarianceFunction(:covPeriodicNoDC,
+                             periodicnodc, 
+                             partial_periodicnodc, 
+                             hyp)
+    return obj
 end
 
 export covPeriodicNoDC

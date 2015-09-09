@@ -1,4 +1,4 @@
-function covsum(x, z, hyp, fvec)
+function covsum(x, z, hyp, fvec, spec)
     n = length(fvec)
     v = apply(vcat, [fill(i, numhyp(fvec[i])) for i in 1:n])
     K = 0
@@ -8,7 +8,7 @@ function covsum(x, z, hyp, fvec)
     return K
 end
 
-function partial_covsum(x, z, hyp, fvec, i)
+function partial_covsum(x, z, hyp, i, fvec, spec)
     n = length(fvec)
     v = apply(vcat, [fill(j, numhyp(fvec[j])) for j in 1:n])
     if i <= length(v)
@@ -21,12 +21,16 @@ function partial_covsum(x, z, hyp, fvec, i)
     end
 end
 
+tags_sum = ["sum"]
+
 function covSum(fvec=[])
-    return CompositeCovarianceFunction(:covSum, 
-                                       covsum, 
-                                       partial_covsum, 
-                                       [],
-                                       fvec)
+    obj = CovarianceFunction(:covSum, 
+                             covsum, 
+                             partial_covsum, 
+                             [])
+    obj.fvec = fvec
+    obj.spec["tag"] = tags_sum
+    return obj
 end
 
 function +(f1::CovarianceFunction, f2::CovarianceFunction)

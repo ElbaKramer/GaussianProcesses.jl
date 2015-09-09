@@ -1,106 +1,70 @@
-abstract CovarianceFunction
-
-type SimpleCovarianceFunction <: CovarianceFunction
+type CovarianceFunction
     fname::Symbol
     f::Function
     pf::Function
     hyp::Vector{Float64}
+    fvec::Vector{CovarianceFunction}
+    spec::Dict{String,Any}
+    function CovarianceFunction(fname::Symbol, f::Function, pf::Function, hyp)
+        return new(fname, f, pf, hyp, Array(CovarianceFunction,0), Dict{String,Any}())
+    end
 end
 
-type CompositeCovarianceFunction <: CovarianceFunction
-    fname::Symbol
-    f::Function
-    pf::Function
-    hyp::Vector{Float64}
-    fvec::Vector{Any}
-end
-
-function covmat(f::SimpleCovarianceFunction,
+function covmat(f::CovarianceFunction,
                 x::Array, z::Array,
                 hyp::Vector=gethyp(f))
-    K = f.f(x, z, hyp)
+    K = f.f(x, z, hyp, f.fvec, f.spec)
     return K
 end
 
-function covmat(f::CompositeCovarianceFunction,
-                x::Array, z::Array,
-                hyp::Vector=gethyp(f))
-    if isempty(f.fvec)
-        error("We require at least one element")
-    else
-        K = f.f(x, z, hyp, f.fvec)
-        return K
-    end
-end
-
-function partial_covmat(f::SimpleCovarianceFunction,
+function partial_covmat(f::CovarianceFunction,
                         x::Array, z::Array, i::Integer,
                         hyp::Vector=gethyp(f))
-    pK = f.pf(x, z, hyp, i)
+    pK = f.pf(x, z, hyp, i, f.fvec, f.spec)
     return pK
 end
 
-function partial_covmat(f::CompositeCovarianceFunction,
-                        x::Array, z::Array, i::Integer,
-                        hyp::Vector=gethyp(f))
-    if isempty(f.fvec)
-        error("We require at least one element")
-    else
-        pK = f.pf(x, z, hyp, f.fvec, i)
-        return pK
-    end
-end
-
-function numhyp(f::SimpleCovarianceFunction)
+function numhyp(f::CovarianceFunction)
     return length(gethyp(f))
 end
 
-function numhyp(f::CompositeCovarianceFunction, self::Bool=false)
-    n = length(gethyp(f, true))
+function numhyp(f::CovarianceFunction, self::Bool=false)
+    nhyp = length(gethyp(f, true))
     if !self
-        for i=1:length(f.fvec)
-            n = n + numhyp(f.fvec[i])
+        nf = length(f.fvec)
+        for i in 1:nf
+            nhyp = nhyp + numhyp(f.fvec[i])
         end
     end
-    return n
+    return nhyp
 end
 
-function gethyp(f::SimpleCovarianceFunction)
-    return f.hyp
-end
-
-function gethyp(f::CompositeCovarianceFunction, self::Bool=false)
+function gethyp(f::CovarianceFunction, self::Bool=false)
     if self
         return f.hyp
     else
-        n = length(f.fvec)
-        hyps = [gethyp(f.fvec[i]) for i in 1:n]
+        nf = length(f.fvec)
+        hyps = [gethyp(f.fvec[i]) for i in 1:nf]
         hyp = apply(vcat, f.hyp, hyps)
         return hyp
     end
 end
 
-function sethyp!(f::SimpleCovarianceFunction, hyp::Vector)
+function sethyp!(f::CovarianceFunction, hyp::Vector, self::Bool=false)
     if length(hyp) != numhyp(f)
         error("Length does not match")
-    else
+    elseif self
         f.hyp = hyp
-    end
-end
-
-function sethyp!(f::CompositeCovarianceFunction, hyp::Vector)
-    if length(hyp) != numhyp(f)
-        error("Length does not match")
     else
         if !isempty(f.hyp)
-            sn = length(f.hyp)
-            shyp = hyp[1:sn]
-            hyp = hyp[(sn+1):end]
+            snhyp = length(f.hyp)
+            shyp = hyp[1:snhyp]
+            hyp = hyp[(snhyp+1):end]
             f.hyp = shyp
         end
-        n = length(f.fvec)
-        v = apply(vcat, [fill(i, numhyp(f.fvec[i])) for i in 1:n])
-        for i=1:n
+        nf = length(f.fvec)
+        v = apply(vcat, [fill(i, numhyp(f.fvec[i])) for i in 1:nf])
+        for i in 1:nf
             sethyp!(f.fvec[i], hyp[v.==i])
         end
     end
@@ -108,13 +72,14 @@ end
 
 import Base.show
 
-function show(io::IO, x::SimpleCovarianceFunction)
-    print(io, x.fname, "(hyp=", string(x.hyp), ")")
-end
-
-function show(io::IO, x::CompositeCovarianceFunction)
+function show(io::IO, x::CovarianceFunction)
     print(io, x.fname, "(hyp=", string(x.hyp))
     print(io, ",fvec=[", join([string(f) for f in x.fvec], ","), "])")
+end
+
+function hastag(f::CovarianceFunction, tags::String...)
+    ftag = get(f.spec, "tag", [])
+    return all([t in ftag for t in tags])
 end
 
 covdir = "cov"
@@ -127,9 +92,9 @@ if isdir(covdir)
 end
 
 function isnoise(f::CovarianceFunction)
-    if f.fname == :covNoise
+    if hastag(f, "noise")
         return true
-    elseif f.fname == :covProd
+    elseif hastag(f, "product")
         anynoise = any([isnoise(ff) for ff in f.fvec])
         return anynoise
     else
@@ -138,7 +103,7 @@ function isnoise(f::CovarianceFunction)
 end
 
 function remove_noise(f::CovarianceFunction)
-    if f.fname == :covSum
+    if hastag(f, "sum")
         f = deepcopy(f)
         flen = length(f.fvec)
         keep = [!isnoise(ff) for ff in f.fvec]
@@ -150,7 +115,7 @@ function remove_noise(f::CovarianceFunction)
         elseif flen == 0
             error("This shouldn't happen")
         end
-    elseif f.fname == :covNoise
+    elseif hastag(f, "noise")
         error("Trying to remove noise from noise")
     end
     return f
@@ -160,5 +125,5 @@ export CovarianceFunction,
        SimpleCovarianceFunction, CompositeCovarianceFunction,
        covmat, partial_covmat,
        numhyp, gethyp, sethyp!,
-       show,
+       show, hastag,
        isnoise, remove_noise
