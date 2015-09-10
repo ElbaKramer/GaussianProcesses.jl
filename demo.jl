@@ -3,7 +3,7 @@ using GaussianProcesses
 using PyPlot
 
 println("Reading data")
-data, header = readcsv("../data/air.csv", header=true)
+data, header = readcsv("data/air.csv", header=true)
 x = data[:,1]
 y = data[:,2]
 
