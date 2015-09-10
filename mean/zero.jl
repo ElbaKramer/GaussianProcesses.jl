@@ -1,5 +1,5 @@
 function meanzero(x, hyp)
-    return zeros(size(x))
+    return zeros(size(x,1))
 end
 
 function partial_meanzero(x, hyp, i)

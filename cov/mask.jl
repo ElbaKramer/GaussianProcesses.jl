@@ -1,14 +1,14 @@
-function covmask(x, z, hyp, fvec)
+function covmask(x, z, hyp, fvec, spec)
     covfunc = fvec[1]
-    mask = fvec[2]
+    mask = spec["mask"]
     K = covmat(covfunc, x[:,mask], z[:,mask], hyp)
     return K
 end
 
-function partial_covmask(x, z, hyp, fvec, i)
+function partial_covmask(x, z, hyp, i, fvec, spec)
     covfunc = fvec[1]
-    mask = fvec[2]
-    if i <= length(hyp)
+    mask = spec["mask"]
+    if i <= numhyp(covfunc)
         K = partial_covmat(covfunc, x[:,mask], z[:,mask], i, hyp)
     else
         error("Unknown hyperparameter")
@@ -20,11 +20,13 @@ function covMask(covfunc, mask, inputdim)
     if !(typeof(mask) <: BitArray)
         mask = [i in mask for i in [1:inputdim]]
     end
-    return CompositeCovarianceFunction(:covMask, 
-                                       covmask, 
-                                       partial_covmask, 
-                                       [],
-                                       [covfunc, mask])
+    obj = CovarianceFunction(:covMask, 
+                             covmask, 
+                             partial_covmask, 
+                             [])
+    obj.fvec = [covfunc]
+    obj.spec["mask"] = mask
+    return obj
 end
 
 export covMask

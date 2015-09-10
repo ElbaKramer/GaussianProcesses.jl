@@ -71,7 +71,7 @@ function minimize(X, f, iter, varargin...)
         X0 = X
         F0 = f0
         dF0 = df0
-        if len < 0
+        if len > 0
             M = MAX
         else
             M = min(MAX, -len-i)

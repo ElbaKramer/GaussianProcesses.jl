@@ -1,4 +1,4 @@
-function linear(x, z, hyp)
+function linear(x, z, hyp, fvec, spec)
     σ² = exp(2*hyp[1])
     shift = hyp[2]
     x = x-shift
@@ -7,7 +7,7 @@ function linear(x, z, hyp)
     return K
 end
 
-function partial_linear(x, z, hyp, i)
+function partial_linear(x, z, hyp, i, fvec, spec)
     σ² = exp(2*hyp[1])
     shift = hyp[2]
     x = x-shift
@@ -25,10 +25,11 @@ function partial_linear(x, z, hyp, i)
 end
 
 function covLinear(hyp=[0.0,0.0])
-    return SimpleCovarianceFunction(:covLinear,
-                                    linear, 
-                                    partial_linear, 
-                                    hyp)
+    obj  = CovarianceFunction(:covLinear,
+                              linear, 
+                              partial_linear, 
+                              hyp)
+    return obj
 end
 
 export covLinear

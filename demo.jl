@@ -9,7 +9,7 @@ y = data[:,2]
 
 println("Generating gp object")
 meanfunc = meanZero()
-covfunc = covConst() + covNoise()
+covfunc = covSEiso() + covNoise()
 gp = GaussianProcess(meanfunc, covfunc)
 println("gp = ", gp)
 
@@ -32,12 +32,13 @@ plot(x, y)
 hold(true)
 plot(x, m)
 hold(false)
-print("Press any key to continue")
-readline()
+title("Plotting data and result")
 
 println("Sample data given Gaussian Process prior")
 ys = sample(gp, x)
 figure()
 plot(x, ys)
-print("Press any key to continue")
-readline()
+title("Sample data given Gaussian Process prior")
+
+show()
+exit()

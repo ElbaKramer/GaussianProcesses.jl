@@ -35,6 +35,22 @@ function lik(gp::GaussianProcess, x, y)
     return lik(gethyp(gp.covfunc), gp, x, y)
 end
 
+function likall(hyp, gp::GaussianProcess, x, y)
+    ndata = length(x)
+    nlml = 0.0
+    dnlml = zeros(length(hyp))
+    for i in 1:ndata
+        nlmli, dnlmli = lik(hyp, gp, x[i], y[i])
+        nlml = nlml + nlmli
+        dnlml = dnlml + dnlmli
+    end
+    return nlml, dnlml
+end
+
+function likall(gp::GaussianProcess, x, y)
+    return likall(gethyp(gp.covfunc), x, y)
+end
+
 function bic(nlml, k, n)
     return 2*nlml + k*log(n)
 end
@@ -51,7 +67,7 @@ function bic(gp::GaussianProcess, x, y)
 end
 
 function train_util(gp::GaussianProcess, x, y, iter)
-    hyp, evals, iters = minimize(gethyp(gp.covfunc), lik, -iter, gp, x, y)
+    hyp, evals, iters = minimize(gethyp(gp.covfunc), lik, iter, gp, x, y)
     return hyp
 end
 
@@ -122,4 +138,7 @@ function sample(gp::GaussianProcess, x)
 end
 
 export GaussianProcess,
-       lik, train, train!, predict, test, sample
+       lik, bic, 
+       train, train!, 
+       predict, test, sample,
+       likall

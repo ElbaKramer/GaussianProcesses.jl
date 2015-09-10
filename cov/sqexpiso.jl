@@ -1,4 +1,4 @@
-function sqexpiso(x, z, hyp)
+function sqexpiso(x, z, hyp, fvec, spec)
     ℓ = exp(hyp[1])
     σ² = exp(2*hyp[2])
     K = sqdist(x'/ℓ, z'/ℓ)
@@ -6,7 +6,7 @@ function sqexpiso(x, z, hyp)
     return K
 end
 
-function partial_sqexpiso(x, z, hyp, i)
+function partial_sqexpiso(x, z, hyp, i, fvec, spec)
     ℓ = exp(hyp[1])
     σ² = exp(2*hyp[2])
     K = sqdist(x'/ℓ, z'/ℓ)
@@ -21,10 +21,11 @@ function partial_sqexpiso(x, z, hyp, i)
 end
 
 function covSEiso(hyp=[0.0,0.0])
-    return SimpleCovarianceFunction(:covSEiso,
-                                    sqexpiso, 
-                                    partial_sqexpiso, 
-                                    hyp)
+    obj = CovarianceFunction(:covSEiso,
+                             sqexpiso, 
+                             partial_sqexpiso, 
+                             hyp)
+    return obj
 end
 
 export covSEiso

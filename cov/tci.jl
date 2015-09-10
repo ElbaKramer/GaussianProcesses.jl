@@ -1,21 +1,23 @@
-function covtci(x, z, hyp, fvec)
+function covtci(x, z, hyp, fvec, spec)
     sfs = hyp[1]
     ellp = hyp[2]
     p = hyp[3]
     sfp = hyp[4]
     sfn = hyp[5]
-    f = covSEiso(hyp=[p, sfs]) + covPeriodicNoDC(hyp=[ellp, p, sfp]) + covNoise(hyp=[sfn])
-    K = covmat(f, x, z, hyp)
+    newhyp = [p, sfs, ellp, p, sfp, sfn]
+    f = covSEiso(newhyp[[1:2]]) + covPeriodicNoDC(newhyp[[3:5]]) + covNoise(newhyp[[6]])
+    K = covmat(f, x, z)
     return K
 end
 
-function partial_covtci(x, z, hyp, fvec, i)
+function partial_covtci(x, z, hyp, i, fvec, spec)
     sfs = hyp[1]
     ellp = hyp[2]
     p = hyp[3]
     sfp = hyp[4]
     sfn = hyp[5]
-    f = covSEiso(hyp=[p, sfs]) + covPeriodicNoDC(hyp=[ellp, p, sfp]) + covNoise(hyp=[sfn])
+    newhyp = [p, sfs, ellp, p, sfp, sfn]
+    f = covSEiso(newhyp[[1:2]]) + covPeriodicNoDC(newhyp[[3:5]]) + covNoise(newhyp[[6]])
     if i == 1
         K = partial_covmat(f, x, z, 2)
     elseif i == 2
@@ -33,10 +35,11 @@ function partial_covtci(x, z, hyp, fvec, i)
 end
 
 function covTci(hyp=[0.0,0.0,0.0,0.0,0.0])
-    return SimpleCovarianceFunction(:covTci, 
-                                    covtci, 
-                                    partial_covtci, 
-                                    hyp)
+    obj = CovarianceFunction(:covTci, 
+                             covtci, 
+                             partial_covtci,
+                             hyp)
+    return obj
 end
 
 export covTci
