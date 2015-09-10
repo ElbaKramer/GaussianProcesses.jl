@@ -35,22 +35,6 @@ function lik(gp::GaussianProcess, x, y)
     return lik(gethyp(gp.covfunc), gp, x, y)
 end
 
-function likall(hyp, gp::GaussianProcess, x, y)
-    ndata = length(x)
-    nlml = 0.0
-    dnlml = zeros(length(hyp))
-    for i in 1:ndata
-        nlmli, dnlmli = lik(hyp, gp, x[i], y[i])
-        nlml = nlml + nlmli
-        dnlml = dnlml + dnlmli
-    end
-    return nlml, dnlml
-end
-
-function likall(gp::GaussianProcess, x, y)
-    return likall(gethyp(gp.covfunc), x, y)
-end
-
 function bic(nlml, k, n)
     return 2*nlml + k*log(n)
 end
@@ -71,11 +55,11 @@ function train_util(gp::GaussianProcess, x, y, iter)
     return hyp
 end
 
-function train(gp::GaussianProcess, x, y, iter=1000)
+function train(gp::GaussianProcess, x, y, iter=500)
     return train_util(gp, x, y, iter)
 end
 
-function train!(gp::GaussianProcess, x, y, iter=1000)
+function train!(gp::GaussianProcess, x, y, iter=500)
     # just get optimum value calling train funciton
     hyp = train(gp, x, y, iter)
     # set the hyperparameters with the new one
@@ -140,5 +124,4 @@ end
 export GaussianProcess,
        lik, bic, 
        train, train!, 
-       predict, test, sample,
-       likall
+       predict, test, sample

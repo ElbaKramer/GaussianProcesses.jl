@@ -94,7 +94,7 @@ end
 function isnoise(f::CovarianceFunction)
     if hastag(f, "noise")
         return true
-    elseif hastag(f, "product")
+    elseif hastag(f, "product") || hastag(f, "wrapper")
         anynoise = any([isnoise(ff) for ff in f.fvec])
         return anynoise
     else
@@ -102,9 +102,46 @@ function isnoise(f::CovarianceFunction)
     end
 end
 
+
+using Iterators
+
+function normal_form(f::CovarianceFunction)
+    f = deepcopy(f)
+    if hastag(f, "product")
+        flen = length(f.fvec)
+        fvec = [normal_form(ff) for ff in f.fvec]
+        fvec = [
+        begin
+            if hastag(ff, "sum")
+                ff.fvec
+            else
+                [ff]
+            end
+        end for ff in fvec]
+        fvec = [apply(*, p) for p in apply(product, fvec)]
+        f = apply(+, fvec)
+    elseif hastag(f, "sum")
+        flen = length(f.fvec)
+        fvec = [normal_form(ff) for ff in f.fvec]
+        f = apply(+, fvec)
+    elseif hastag(f, "mask")
+        fvec = f.fvec[1]
+        if hastag(fvec, "sum") || hastag(fvec, "product")
+            ff = deepcopy(fvec)
+            for i in 1:length(ff.fvec)
+                fff = deepcopy(f)
+                fff.fvec[1] = ff.fvec[i]
+                ff.fvec[i] = fff
+            end
+            f = ff
+        end
+    end
+    return f
+end
+
 function remove_noise(f::CovarianceFunction)
+    f = normal_form(f)
     if hastag(f, "sum")
-        f = deepcopy(f)
         flen = length(f.fvec)
         keep = [!isnoise(ff) for ff in f.fvec]
         f.fvec = f.fvec[keep]
@@ -115,6 +152,8 @@ function remove_noise(f::CovarianceFunction)
         elseif flen == 0
             error("This shouldn't happen")
         end
+    elseif hastag(f, "wrapper")
+        f.fvec = remove_noise(f.fvec)
     elseif hastag(f, "noise")
         error("Trying to remove noise from noise")
     end
@@ -126,4 +165,4 @@ export CovarianceFunction,
        covmat, partial_covmat,
        numhyp, gethyp, sethyp!,
        show, hastag,
-       isnoise, remove_noise
+       isnoise, normal_form, remove_noise

@@ -33,6 +33,10 @@ function covSum(fvec=[])
     return obj
 end
 
+function +(f::CovarianceFunction)
+    return f
+end
+
 function +(f1::CovarianceFunction, f2::CovarianceFunction)
     fn1 = f1.fname == :covSum
     fn2 = f2.fname == :covSum

@@ -40,6 +40,10 @@ function covProd(fvec=[])
     return obj
 end
 
+function *(f::CovarianceFunction)
+    return f
+end
+
 function *(f1::CovarianceFunction, f2::CovarianceFunction)
     fn1 = f1.fname == :covProd
     fn2 = f2.fname == :covProd

@@ -16,6 +16,8 @@ function partial_covmask(x, z, hyp, i, fvec, spec)
     return K
 end
 
+tags_mask = ["wrapper", "mask"]
+
 function covMask(covfunc, mask, inputdim)
     if !(typeof(mask) <: BitArray)
         mask = [i in mask for i in [1:inputdim]]
@@ -26,6 +28,7 @@ function covMask(covfunc, mask, inputdim)
                              [])
     obj.fvec = [covfunc]
     obj.spec["mask"] = mask
+    obj.spec["tag"] = tags_mask
     return obj
 end
 
