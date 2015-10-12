@@ -23,7 +23,8 @@ function gethyp(f::MeanFunction)
     return f.hyp
 end
 
-meandir = "mean"
+meandirname = "mean"
+meandir = joinpath(dirname(@__FILE__), meandirname)
 if isdir(meandir)
     for file in readdir(meandir)
         if splitext(file)[2] == ".jl"

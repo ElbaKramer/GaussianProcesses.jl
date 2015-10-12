@@ -18,10 +18,7 @@ end
 
 tags_mask = ["wrapper", "mask"]
 
-function covMask(covfunc, mask, inputdim)
-    if !(typeof(mask) <: BitArray)
-        mask = [i in mask for i in [1:inputdim]]
-    end
+function covMask(covfunc, mask)
     obj = CovarianceFunction(:covMask, 
                              covmask, 
                              partial_covmask, 

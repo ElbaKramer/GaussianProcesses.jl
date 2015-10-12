@@ -24,36 +24,28 @@ function partial_covmat(f::CovarianceFunction,
     return pK
 end
 
-function numhyp(f::CovarianceFunction)
-    return length(gethyp(f))
-end
-
 function numhyp(f::CovarianceFunction, self::Bool=false)
     nhyp = length(gethyp(f, true))
-    if !self
-        nf = length(f.fvec)
-        for i in 1:nf
-            nhyp = nhyp + numhyp(f.fvec[i])
-        end
+    if !self && !isempty(f.fvec)
+        nhyp = nhyp + sum([numhyp(ff) for ff in f.fvec])
     end
     return nhyp
 end
 
 function gethyp(f::CovarianceFunction, self::Bool=false)
-    if self
+    if self || isempty(f.fvec)
         return f.hyp
     else
-        nf = length(f.fvec)
-        hyps = [gethyp(f.fvec[i]) for i in 1:nf]
+        hyps = [gethyp(ff) for ff in f.fvec]
         hyp = apply(vcat, f.hyp, hyps)
         return hyp
     end
 end
 
 function sethyp!(f::CovarianceFunction, hyp::Vector, self::Bool=false)
-    if length(hyp) != numhyp(f)
+    if length(hyp) != numhyp(f, self)
         error("Length does not match")
-    elseif self
+    elseif self || isempty(f.fvec)
         f.hyp = hyp
     else
         if !isempty(f.hyp)
@@ -82,7 +74,8 @@ function hastag(f::CovarianceFunction, tags::String...)
     return all([t in ftag for t in tags])
 end
 
-covdir = "cov"
+covdirname = "cov"
+covdir = joinpath(dirname(@__FILE__), covdirname)
 if isdir(covdir)
     for file in readdir(covdir)
         if splitext(file)[2] == ".jl"
