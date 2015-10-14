@@ -62,7 +62,7 @@ end
 function low2vec(L, D, irank)
     v = []
     for i in 1:D
-        v = apply(vcat, v, L[i,1:min(i,irank)])
+        v = vcat(v, L[i,1:min(i,irank)])
     end
     return v
 end

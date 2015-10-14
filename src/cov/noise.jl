@@ -31,7 +31,7 @@ function covNoise(hyp=[0.0])
                              noise, 
                              partial_noise, 
                              hyp)
-    obj.spec["tag"] = tags_noise
+    obj.tags = tags_noise
     return obj
 end
 

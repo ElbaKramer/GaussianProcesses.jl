@@ -26,7 +26,7 @@ function covConst(hyp=[0.0])
                              covconst, 
                              partial_covconst, 
                              hyp)
-    obj.spec["tag"] = tags_const
+    obj.tags = tags_const
     return obj
 end
 

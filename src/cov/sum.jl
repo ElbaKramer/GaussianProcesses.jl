@@ -1,6 +1,6 @@
 function covsum(x, z, hyp, fvec, spec)
     n = length(fvec)
-    v = apply(vcat, [fill(i, numhyp(fvec[i])) for i in 1:n])
+    v = vcat([fill(i, numhyp(fvec[i])) for i in 1:n]...)
     K = 0
     for i in 1:n
         K = K + covmat(fvec[i], x, z, hyp[v.==i])
@@ -10,7 +10,7 @@ end
 
 function partial_covsum(x, z, hyp, i, fvec, spec)
     n = length(fvec)
-    v = apply(vcat, [fill(j, numhyp(fvec[j])) for j in 1:n])
+    v = vcat([fill(j, numhyp(fvec[j])) for j in 1:n]...)
     if i <= length(v)
         vi = v[i]
         j = sum(v[1:i].==vi)
@@ -29,9 +29,11 @@ function covSum(fvec=[])
                              partial_covsum, 
                              [])
     obj.fvec = fvec
-    obj.spec["tag"] = tags_sum
+    obj.tags = tags_sum
     return obj
 end
+
+import Base.+
 
 function +(f::CovarianceFunction)
     return f

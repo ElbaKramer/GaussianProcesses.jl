@@ -25,7 +25,7 @@ function covMask(covfunc, mask)
                              [])
     obj.fvec = [covfunc]
     obj.spec["mask"] = mask
-    obj.spec["tag"] = tags_mask
+    obj.tags = tags_mask
     return obj
 end
 

@@ -1,6 +1,6 @@
 function covprod(x, z, hyp, fvec, spec)
     n = length(fvec)
-    v = apply(vcat, [fill(i, numhyp(fvec[i])) for i in 1:n])
+    v = vcat([fill(i, numhyp(fvec[i])) for i in 1:n]...)
     K = 1
     for i=1:n
         K = K .* covmat(fvec[i], x, z, hyp[v.==i])
@@ -10,7 +10,7 @@ end
 
 function partial_covprod(x, z, hyp, i, fvec, spec)
     n = length(fvec)
-    v = apply(vcat, [fill(j, numhyp(fvec[j])) for j in 1:n])
+    v = vcat([fill(j, numhyp(fvec[j])) for j in 1:n]...)
     if i <= length(v)
         K = 1
         vi = v[i]
@@ -36,9 +36,11 @@ function covProd(fvec=[])
                              partial_covprod, 
                              [])
     obj.fvec = fvec
-    obj.spec["tag"] = tags_prod
+    obj.tags = tags_prod
     return obj
 end
+
+import Base.*
 
 function *(f::CovarianceFunction)
     return f

@@ -1,12 +1,20 @@
 type CovarianceFunction
+    # class specific
     fname::Symbol
     f::Function
     pf::Function
+    tags::Vector{AbstractString}
+
+    # object specific
     hyp::Vector{Float64}
     fvec::Vector{CovarianceFunction}
-    spec::Dict{String,Any}
+
+    # additional specs (either)
+    spec::Dict{AbstractString,Any}
+
+    # constructor
     function CovarianceFunction(fname::Symbol, f::Function, pf::Function, hyp)
-        return new(fname, f, pf, hyp, Array(CovarianceFunction,0), Dict{String,Any}())
+        return new(fname, f, pf, Array(AbstractString,0), hyp, Array(CovarianceFunction,0), Dict{AbstractString,Any}())
     end
 end
 
@@ -37,7 +45,7 @@ function gethyp(f::CovarianceFunction, self::Bool=false)
         return f.hyp
     else
         hyps = [gethyp(ff) for ff in f.fvec]
-        hyp = apply(vcat, f.hyp, hyps)
+        hyp = vcat(f.hyp, hyps...)
         return hyp
     end
 end
@@ -55,7 +63,7 @@ function sethyp!(f::CovarianceFunction, hyp::Vector, self::Bool=false)
             f.hyp = shyp
         end
         nf = length(f.fvec)
-        v = apply(vcat, [fill(i, numhyp(f.fvec[i])) for i in 1:nf])
+        v = vcat([fill(i, numhyp(f.fvec[i])) for i in 1:nf]...)
         for i in 1:nf
             sethyp!(f.fvec[i], hyp[v.==i])
         end
@@ -69,9 +77,8 @@ function show(io::IO, x::CovarianceFunction)
     print(io, ",fvec=[", join([string(f) for f in x.fvec], ","), "])")
 end
 
-function hastag(f::CovarianceFunction, tags::String...)
-    ftag = get(f.spec, "tag", [])
-    return all([t in ftag for t in tags])
+function hastag(f::CovarianceFunction, tags::AbstractString...)
+    return issubset(tags, f.tags)
 end
 
 covdirname = "cov"
@@ -95,7 +102,6 @@ function isnoise(f::CovarianceFunction)
     end
 end
 
-
 using Iterators
 
 function normal_form(f::CovarianceFunction)
@@ -103,23 +109,23 @@ function normal_form(f::CovarianceFunction)
     if hastag(f, "product")
         flen = length(f.fvec)
         fvec = [normal_form(ff) for ff in f.fvec]
-        fvec = [
-        begin
+        fvec = [begin
             if hastag(ff, "sum")
                 ff.fvec
             else
                 [ff]
             end
         end for ff in fvec]
-        fvec = [apply(*, p) for p in apply(product, fvec)]
-        f = apply(+, fvec)
+        fvec = [*(p...) for p in product(fvec...)]
+        f = +(fvec...)
     elseif hastag(f, "sum")
         flen = length(f.fvec)
         fvec = [normal_form(ff) for ff in f.fvec]
-        f = apply(+, fvec)
-    elseif hastag(f, "mask")
+        f = +(fvec...)
+    elseif hastag(f, "wrapper")
         fvec = f.fvec[1]
         if hastag(fvec, "sum") || hastag(fvec, "product")
+            #TODO I think this can be improved
             ff = deepcopy(fvec)
             for i in 1:length(ff.fvec)
                 fff = deepcopy(f)
@@ -135,26 +141,24 @@ end
 function remove_noise(f::CovarianceFunction)
     f = normal_form(f)
     if hastag(f, "sum")
-        flen = length(f.fvec)
-        keep = [!isnoise(ff) for ff in f.fvec]
+        keep = map(Bool,[!isnoise(ff) for ff in f.fvec]) # don't like this
         f.fvec = f.fvec[keep]
         f.fvec = [remove_noise(ff) for ff in f.fvec]
         flen = length(f.fvec)
         if flen == 1
             f = f.fvec[1]
         elseif flen == 0
-            error("This shouldn't happen")
+            error("Removing noise results nothing left")
         end
     elseif hastag(f, "wrapper")
         f.fvec = remove_noise(f.fvec)
     elseif hastag(f, "noise")
-        error("Trying to remove noise from noise")
+        error("Trying to remove noise from only noise")
     end
     return f
 end
 
 export CovarianceFunction, 
-       SimpleCovarianceFunction, CompositeCovarianceFunction,
        covmat, partial_covmat,
        numhyp, gethyp, sethyp!,
        show, hastag,

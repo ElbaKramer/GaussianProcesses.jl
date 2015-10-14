@@ -16,7 +16,7 @@ function covZero()
                              covzero, 
                              partial_covzero, 
                              [])
-    obj.spec["tag"] = tags_zero
+    obj.tags = tags_zero
     return obj
 end
 

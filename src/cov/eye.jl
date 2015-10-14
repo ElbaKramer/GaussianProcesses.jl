@@ -27,7 +27,7 @@ function covEye(hyp=[0.0])
                              coveye, 
                              partial_coveye, 
                              hyp)
-    obj.spec["tag"] = tags_eye
+    obj.tags = tags_eye
     return obj                             
 end
 
