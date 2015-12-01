@@ -12,14 +12,14 @@ function lik(hyp, gp::GaussianProcess, x, y)
 
     # calculate inverse of Σ using cholesky factorization
     # here, α = Σ⁻¹(y-μ)
-    L = chol(Σ)
-    α = solvechol(L, y-μ)
+    R = chol(Σ)
+    α = solvechol(R, y-μ)
     # calculate negative log marginal likelihood
     # here, nlml = 1/2*(y-μ)ᵀΣ⁻¹(y-μ) + 1/2*log(|Σ|) + k/2*log(2π)
-    nlml = dot(y-μ, α)/2 + sum(log(diag(L))) + n*log(2π)/2
+    nlml = dot(y-μ, α)/2 + sum(log(diag(R))) + n*log(2π)/2
 
     # precompute Q
-    Q = solvechol(L, eye(n)) - α*α'
+    Q = solvechol(R, eye(n)) - α*α'
     # preallocate memory
     dnlml = zeros(numhyp(gp.covfunc))
     # calculate partial derivatives
@@ -81,12 +81,14 @@ function predict(gp::GaussianProcess, x, y, xs)
     Kss = covmat(covsignal, xs, xs)
     Ksx = covmat(covsignal, xs, x)
     Kxx = covmat(covgiven, x, x)
-    Lxx = chol(Kxx)
+    Rxx = chol(Kxx)
 
     # compute conditional
-    μ = μs + Ksx*solvechol(Lxx, y-μx)
-    Σ = Kss - Ksx*solvechol(Lxx, Ksx')
+    μ = μs + Ksx*solvechol(Rxx, y-μx)
+    Σ = Kss - Ksx*solvechol(Rxx, Ksx')
     σ²= diag(Σ) # needs improvement in terms of computational efficiency #TODO
+
+    println(σ²)
 
     # return mean and variance with length of test input
     return μ, σ²
