@@ -18,7 +18,7 @@ function partial_covposdef(x, z, hyp, i, fvec, spec)
     tasks = spec["tasks"]
     irank = spec["irank"]
     ntasks = length(tasks)
-    nlf = round(irank*(2*ntasks-irank+1)/2)
+    nlf = round(Int, irank*(2*ntasks-irank+1)/2)
     idx = indexin(x, tasks)
     idz = indexin(z, tasks)
     if i<=nlf
@@ -34,9 +34,9 @@ function partial_covposdef(x, z, hyp, i, fvec, spec)
     return K
 end
 
-function covPosDef(tasks; irank=length(tasks))
+function covPosDef(tasks; irank::Integer=length(tasks))
     ntasks = length(tasks)
-    nlf = round(irank*(2*ntasks-irank+1)/2)
+    nlf = round(Int, irank*(2*ntasks-irank+1)/2)
     L = full(chol(eye(nlf, nlf))')
     hyp = low2vec(L, ntasks, irank)
     obj = CovarianceFunction(:covPosDef, 
@@ -48,7 +48,7 @@ function covPosDef(tasks; irank=length(tasks))
     return obj
 end
 
-function vec2low(v, D, irank)
+function vec2low(v, D, irank::Integer)
     L = zeros(D,D)
     low = 1
     for i in 1:D

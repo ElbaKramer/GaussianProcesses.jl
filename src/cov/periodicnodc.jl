@@ -35,7 +35,9 @@ function periodicnodc(x, z, hyp, fvec, spec)
     ℓ = exp(hyp[1])
     p = exp(hyp[2])
     σ² = exp(2*hyp[3])
-    K = sqrt(sqdist(x', z'))
+    K = sqdist(x', z')
+    K[K.<0] = 0
+    K = sqrt(K)
     K = 2*π*K/p
     K = σ²*covD(K, ℓ)
     return K
@@ -45,7 +47,9 @@ function partial_periodicnodc(x, z, hyp, i, fvec, spec)
     ell = exp(hyp[1])
     p = exp(hyp[2])
     sf2 = exp(2*hyp[3])
-    K = sqrt(sqdist(x', z'))
+    K = sqdist(x', z')
+    K[K.<0] = 0
+    K = sqrt(K)
     K = 2*pi*K/p
     if i==1
         if ell>1e4                                 

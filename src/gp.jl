@@ -88,8 +88,6 @@ function predict(gp::GaussianProcess, x, y, xs)
     Σ = Kss - Ksx*solvechol(Rxx, Ksx')
     σ²= diag(Σ) # needs improvement in terms of computational efficiency #TODO
 
-    println(σ²)
-
     # return mean and variance with length of test input
     return μ, σ²
 end

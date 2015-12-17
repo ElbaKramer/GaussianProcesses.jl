@@ -95,7 +95,7 @@ function isnoise(f::CovarianceFunction)
     if hastag(f, "noise")
         return true
     elseif hastag(f, "product") || hastag(f, "wrapper")
-        anynoise = any([isnoise(ff) for ff in f.fvec])
+        anynoise = any(isnoise, f.fvec)
         return anynoise
     else
         return false
