@@ -7,6 +7,10 @@ data, header = readcsv("data/air.csv", header=true)
 x = data[:,1]
 y = data[:,2]
 
+figure()
+plot(x,y)
+title("Data shape")
+
 println("Generating gp object")
 meanfunc = meanZero()
 covfunc = covSEiso() + covNoise()
@@ -41,6 +45,6 @@ ys = sample(gp, x)
 figure()
 plot(x, ys)
 title("Sample data given Gaussian Process prior")
-
 show()
+
 exit()

@@ -193,4 +193,4 @@ function minimize(X, f, iter, varargin...)
     return X, fX, i
 end
 
-export minimize
+export solvechol, minimize
