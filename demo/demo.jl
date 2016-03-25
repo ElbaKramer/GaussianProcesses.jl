@@ -3,7 +3,7 @@ using GaussianProcesses
 using PyPlot
 
 println("Reading data")
-data, header = readcsv("data/air.csv", header=true)
+data, header = readcsv("demo/data/air.csv", header=true)
 x = data[:,1]
 y = data[:,2]
 
@@ -46,5 +46,3 @@ figure()
 plot(x, ys)
 title("Sample data given Gaussian Process prior")
 show()
-
-exit()
