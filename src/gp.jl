@@ -122,13 +122,13 @@ function sample(gp::GaussianProcess, x)
     return y
 end
 
-function decompose(gp:GaussianProcess, x, y)
+function decompose(gp::GaussianProcess, x, y)
     normal_covfunc = normal_form(gp.covfunc)
     covfuncs = normal.covfunc.fvec
     lencofs = length(covfs)
     ys = cell(lencovfs)
     for i in 1:lencovfs
-        m, s2 = predict(gp, x, y, x, covfuncs[i] gp.covfunc)
+        m, s2 = predict(gp, x, y, x, covfuncs[i], gp.covfunc)
         ys[i] = m
     end
     return x, ys
