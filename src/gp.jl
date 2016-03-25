@@ -69,10 +69,11 @@ function train!(gp::GaussianProcess, x, y, iter=500)
     return hyp
 end
 
-function predict(gp::GaussianProcess, x, y, xs)
+function predict(gp::GaussianProcess, x, y, xs, 
+                 covsignal=remove_noise(gp.covfunc), covgiven=gp.covfunc)
     # original covfunc and its noise free version
-    covgiven = gp.covfunc
-    covsignal = remove_noise(gp.covfunc)
+    #covgiven = gp.covfunc
+    #covsignal = remove_noise(gp.covfunc)
 
     # mean vectors
     μs = meanvec(gp.meanfunc, xs)
@@ -121,7 +122,19 @@ function sample(gp::GaussianProcess, x)
     return y
 end
 
+function decompose(gp:GaussianProcess, x, y)
+    normal_covfunc = normal_form(gp.covfunc)
+    covfuncs = normal.covfunc.fvec
+    lencofs = length(covfs)
+    ys = cell(lencovfs)
+    for i in 1:lencovfs
+        m, s2 = predict(gp, x, y, x, covfuncs[i] gp.covfunc)
+        ys[i] = m
+    end
+    return x, ys
+end
+
 export GaussianProcess,
        lik, bic, 
        train, train!, 
-       predict, test, sample
+       predict, test, sample, decompose
