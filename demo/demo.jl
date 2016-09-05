@@ -3,7 +3,7 @@ using GaussianProcesses
 using PyPlot
 
 println("Reading data")
-data, header = readcsv("demo/data/air.csv", header=true)
+data, header = readcsv("data/air.csv", header=true)
 x = data[:,1]
 y = data[:,2]
 
@@ -13,7 +13,7 @@ title("Data shape")
 
 println("Generating gp object")
 meanfunc = meanZero()
-covfunc = covSEiso() + covNoise()
+covfunc = covSEiso() + covLinear([0.0, minimum(x)])*covPeriodicNoDC() + covNoise()
 gp = GaussianProcess(meanfunc, covfunc)
 println("gp = ", gp)
 
@@ -24,7 +24,7 @@ println("dnlml = ", dnlml)
 
 println("Optimizing hyperparameters of covariance kernel")
 println("initial params = ", gethyp(gp.covfunc))
-opt = train!(gp, x, y)
+opt = train!(gp, x, y, 1000)
 println("optimized params = ", gethyp(gp.covfunc))
 nlml, dnlml = lik(gp, x, y)
 println("optimized nlml = ", nlml)
@@ -39,6 +39,10 @@ m, s2 = predict(gp, x, y, xs)
 plot(xs, m)
 hold(false)
 title("Plotting data and result")
+
+println("Decompose gp")
+xs, ys, s2 = decompose(gp, x, y)
+writecsv("abcd.csv", hcat(xs, hcat(ys...), hcat(s2...)))
 
 println("Sample data given Gaussian Process prior")
 ys = sample(gp, x)

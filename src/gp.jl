@@ -124,14 +124,16 @@ end
 
 function decompose(gp::GaussianProcess, x, y)
     normal_covfunc = normal_form(gp.covfunc)
-    covfuncs = normal.covfunc.fvec
-    lencofs = length(covfs)
+    covfuncs = normal_covfunc.fvec
+    lencovfs = length(covfuncs)
     ys = cell(lencovfs)
+    s2 = cell(lencovfs)
     for i in 1:lencovfs
-        m, s2 = predict(gp, x, y, x, covfuncs[i], gp.covfunc)
+        m, v = predict(gp, x, y, x, covfuncs[i], gp.covfunc)
         ys[i] = m
+        s2[i] = v
     end
-    return x, ys
+    return x, ys, s2
 end
 
 export GaussianProcess,
