@@ -1,7 +1,7 @@
 function covsum(x, z, hyp, fvec, spec)
     n = length(fvec)
     v = vcat([fill(i, numhyp(fvec[i])) for i in 1:n]...)
-    K = 0
+    K = zeros(size(x, 1), size(z, 1))
     for i in 1:n
         K = K + covmat(fvec[i], x, z, hyp[v.==i])
     end

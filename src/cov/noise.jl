@@ -5,7 +5,7 @@ function noise(x, z, hyp, fvec, spec)
     tol = eps()
     T = sqdist(x', z').<tol*tol
     K = zeros(n, m)
-    K[find(T)] = σ²
+    K[T] .= σ²
     return K
 end
 
@@ -17,7 +17,7 @@ function partial_noise(x, z, hyp, i, fvec, spec)
     T = sqdist(x', z').<tol*tol
     K = zeros(n, m)
     if i==1
-        K[find(T)] = 2*σ²
+        K[T] .= 2*σ²
     else
         error("Unknown hyperparamter")
     end

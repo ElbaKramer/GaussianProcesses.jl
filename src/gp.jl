@@ -1,4 +1,8 @@
-type GaussianProcess
+include("compat.jl")
+
+using Random
+
+struct GaussianProcess
     meanfunc::MeanFunction
     covfunc::CovarianceFunction
 end
@@ -16,10 +20,10 @@ function lik(hyp, gp::GaussianProcess, x, y)
     α = solvechol(R, y-μ)
     # calculate negative log marginal likelihood
     # here, nlml = 1/2*(y-μ)ᵀΣ⁻¹(y-μ) + 1/2*log(|Σ|) + k/2*log(2π)
-    nlml = dot(y-μ, α)/2 + sum(log(diag(R))) + n*log(2π)/2
+    nlml = dot(y-μ, α)/2 + sum(log.(diag(R))) + n*log(2π)/2
 
     # precompute Q
-    Q = solvechol(R, eye(n)) - α*α'
+    Q = solvechol(R, I) - α*α'
     # preallocate memory
     dnlml = zeros(numhyp(gp.covfunc))
     # calculate partial derivatives
@@ -98,7 +102,7 @@ function test(gp::GaussianProcess, x, y, xs, ys)
     μ, σ² = predict(gp, x, y, xs)
 
     # pointwise log probabilities
-    lp = -(ys-μ).^2./σ²/2-log(2π*σ²)/2
+    lp = - (ys - μ).^2 ./ σ² / 2 - log.(2π*σ²) / 2
 
     # return mean, variance and log probability with length of test input
     return μ, σ², lp

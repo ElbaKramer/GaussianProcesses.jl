@@ -1,4 +1,4 @@
-type MeanFunction
+struct MeanFunction
     fname::Symbol
     f::Function
     pf::Function

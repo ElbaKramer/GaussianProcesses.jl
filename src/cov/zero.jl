@@ -1,6 +1,6 @@
 function covzero(x, z, hyp, fvec, spec)
     n = size(x, 1)
-    m = size(m, 1)
+    m = size(z, 1)
     K = zeros(n, m)
     return K
 end

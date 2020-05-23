@@ -1,4 +1,4 @@
-type CovarianceFunction
+mutable struct CovarianceFunction
     # class specific
     fname::Symbol
     f::Function
@@ -14,7 +14,7 @@ type CovarianceFunction
 
     # constructor
     function CovarianceFunction(fname::Symbol, f::Function, pf::Function, hyp)
-        return new(fname, f, pf, Array(AbstractString,0), hyp, Array(CovarianceFunction,0), Dict{AbstractString,Any}())
+        return new(fname, f, pf, Array{AbstractString}(undef, 0), hyp, Array{CovarianceFunction}(undef, 0), Dict{AbstractString,Any}())
     end
 end
 
@@ -22,6 +22,12 @@ function covmat(f::CovarianceFunction,
                 x::Array, z::Array,
                 hyp::Vector=gethyp(f))
     K = f.f(x, z, hyp, f.fvec, f.spec)
+    if any(isnan, K)
+        error("$f")
+    end
+    if any(isinf, K)
+        error("$f")
+    end
     return K
 end
 
@@ -102,7 +108,7 @@ function isnoise(f::CovarianceFunction)
     end
 end
 
-using Iterators
+using Base.Iterators
 
 function normal_form(f::CovarianceFunction)
     f = deepcopy(f)
